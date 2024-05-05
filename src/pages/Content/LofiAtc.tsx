@@ -2,11 +2,10 @@ import * as React from "react";
 import { useState, useRef, useEffect } from "react";
 import CssBaseline from "@mui/material/CssBaseline";
 import Stack from "@mui/material/Stack";
-import {
-  createTheme,
-  ThemeProvider,
-  PaletteMode,
-} from "@mui/material/styles";
+import { createTheme, ThemeProvider, PaletteMode } from "@mui/material/styles";
+import TextField from '@mui/material/TextField';
+import Autocomplete from '@mui/material/Autocomplete';
+import { Button } from "@mui/material";
 import {
   Box,
   Typography,
@@ -15,7 +14,12 @@ import {
   Menu,
   MenuItem,
   Slider,
+  InputBase,
+  Dialog,
+  DialogContent,
 } from "@mui/material";
+import FlightTakeoffIcon from "@mui/icons-material/FlightTakeoff";
+import CloseIcon from "@mui/icons-material/Close";
 import {
   PlayArrow,
   Pause,
@@ -26,6 +30,8 @@ import {
 import ToggleColorMode from "../Auth/Functions/ToggleColorMode";
 import { SitemarkIcon } from "../Auth/Theme/CustomIcons";
 import sound from "../../assets/Music/Lofi1.mp3";
+import { useNavigate } from "react-router-dom";
+
 
 export const LofiAtc = () => {
   const initialMode = (localStorage.getItem("theme") as PaletteMode) || "light";
@@ -37,12 +43,33 @@ export const LofiAtc = () => {
   const [isPlaying, setIsPlaying] = useState(false);
   const atcAudioRef = useRef<HTMLAudioElement | null>(null);
   const musicAudioRef = useRef<HTMLAudioElement | null>(null);
+  const navigate = useNavigate();
+  const [search, setSearch] = useState("");
+  const [isSearchVisible, setIsSearchVisible] = useState(false);
+  const [selectedAirport, setSelectedAirport] = useState(null);
+
+  const airports = [
+    { label: 'JFK', code: 'JFK' },
+    { label: 'LAX', code: 'LAX' },
+    { label: 'OSL', code: 'OSL' },
+  ];
+  
+
+  const handleSearch = (event: React.FormEvent) => {
+    event.preventDefault();
+    if (selectedAirport) {
+      navigate(`/LofiAtc/${selectedAirport.label}`);
+    }
+  };
 
   const handleAtcVolumeChange = (_event: any, newValue: number | number[]) => {
     setAtcVolume(newValue as number);
   };
 
-  const handleMusicVolumeChange = (_event: any, newValue: number | number[]) => {
+  const handleMusicVolumeChange = (
+    _event: any,
+    newValue: number | number[]
+  ) => {
     setMusicVolume(newValue as number);
   };
 
@@ -56,6 +83,14 @@ export const LofiAtc = () => {
 
   const handleMenuOpen = (event: React.MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event.currentTarget);
+  };
+
+  const handleSearchOpen = () => {
+    setIsSearchVisible(true);
+  };
+
+  const handleSearchClose = () => {
+    setIsSearchVisible(false);
   };
 
   const handleMenuClose = () => {
@@ -183,6 +218,7 @@ export const LofiAtc = () => {
             top: "50%",
             left: "50%",
             transform: "translate(-50%, -50%)",
+            boxShadow: "0 0 10px 5px rgba(43,48,151,44)",
           }}
         >
           <IconButton
@@ -195,6 +231,38 @@ export const LofiAtc = () => {
           >
             <Settings />
           </IconButton>
+
+          
+            <IconButton onClick={handleSearchOpen}
+            sx={{
+              position: "absolute",
+              top: 8,
+              left: 8,
+            }}>
+              <FlightTakeoffIcon />
+            </IconButton>
+
+            <Dialog open={isSearchVisible} onClose={handleSearchClose}>
+  <DialogContent>
+    <Autocomplete
+      options={airports}
+      getOptionLabel={(option) => option.label}
+      sx={{ width: 300 }}
+      onChange={(event, newValue) => {
+        setSelectedAirport(newValue);
+      }}
+      renderInput={(params) => (
+        <TextField {...params} label="Airport" variant="outlined" />
+      )}
+    />
+    <Button onClick={handleSearch} color="primary">
+      Fly me there
+    </Button>
+  </DialogContent>
+</Dialog>
+
+     
+       
 
           <Typography variant="h4">RJTT</Typography>
           <Typography variant="h6">Tokyo International Airport</Typography>
