@@ -47,7 +47,8 @@ const SignUpContainer = styled(Stack)(({ theme }) => ({
 }));
 
 export default function SignUp() {
-  const [mode, setMode] = React.useState<PaletteMode>('light');
+  const initialMode = localStorage.getItem('theme') as PaletteMode || 'light';
+  const [mode, setMode] = React.useState<PaletteMode>(initialMode);
   const defaultTheme = createTheme({ palette: { mode } });
   const [emailError, setEmailError] = React.useState(false);
   const [emailErrorMessage, setEmailErrorMessage] = React.useState('');
@@ -94,7 +95,12 @@ export default function SignUp() {
   };
 
   const toggleColorMode = () => {
-    setMode((prev) => (prev === 'dark' ? 'light' : 'dark'));
+    setMode((prev) => {
+      const newMode = prev === "dark" ? "light" : "dark";
+      // Save the new theme to local storage
+      localStorage.setItem('theme', newMode);
+      return newMode;
+    });
   };
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {

@@ -9,11 +9,17 @@ import SignInCard from './SignInCard';
 import Content from './Content';
 
 export default function SignInSide() {
-  const [mode, setMode] = React.useState<PaletteMode>('light');
+  const initialMode = localStorage.getItem('theme') as PaletteMode || 'light';
+  const [mode, setMode] = React.useState<PaletteMode>(initialMode);
   const defaultTheme = createTheme({ palette: { mode } });
 
   const toggleColorMode = () => {
-    setMode((prev) => (prev === 'dark' ? 'light' : 'dark'));
+    setMode((prev) => {
+      const newMode = prev === "dark" ? "light" : "dark";
+      // Save the new theme to local storage
+      localStorage.setItem('theme', newMode);
+      return newMode;
+    });
   };
 
 

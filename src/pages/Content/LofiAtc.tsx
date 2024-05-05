@@ -1,36 +1,58 @@
 import * as React from "react";
+import { useState, useRef, useEffect } from "react";
 import CssBaseline from "@mui/material/CssBaseline";
 import Stack from "@mui/material/Stack";
-import { createTheme, ThemeProvider } from "@mui/material/styles";
-import { PaletteMode } from "@mui/material";
-import { Box, Typography, IconButton, Link, Menu, MenuItem } from "@mui/material";
-import { PlayArrow, Pause, Settings } from "@mui/icons-material";
-import { useState, useRef, useEffect } from "react";
-import Slider from "@mui/material/Slider";
-import VolumeDown from "@mui/icons-material/VolumeDown";
-import VolumeUp from "@mui/icons-material/VolumeUp";
+import {
+  createTheme,
+  ThemeProvider,
+  PaletteMode,
+} from "@mui/material/styles";
+import {
+  Box,
+  Typography,
+  IconButton,
+  Link,
+  Menu,
+  MenuItem,
+  Slider,
+} from "@mui/material";
+import {
+  PlayArrow,
+  Pause,
+  Settings,
+  VolumeDown,
+  VolumeUp,
+} from "@mui/icons-material";
 import ToggleColorMode from "../Auth/Functions/ToggleColorMode";
-import { SitemarkIcon } from '../Auth/Theme/CustomIcons';
+import { SitemarkIcon } from "../Auth/Theme/CustomIcons";
+import sound from "../../assets/Music/Lofi1.mp3";
 
 export const LofiAtc = () => {
-  const [mode, setMode] = React.useState<PaletteMode>("light");
+  const initialMode = (localStorage.getItem("theme") as PaletteMode) || "light";
+  const [mode, setMode] = useState<PaletteMode>(initialMode);
   const defaultTheme = createTheme({ palette: { mode } });
-  const [anchorEl, setAnchorEl] = useState<
-    (EventTarget & HTMLButtonElement) | null
-  >(null);
-  const [volume, setVolume] = useState(50);
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [atcVolume, setAtcVolume] = useState(50);
+  const [musicVolume, setMusicVolume] = useState(50);
   const [isPlaying, setIsPlaying] = useState(false);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const atcAudioRef = useRef<HTMLAudioElement | null>(null);
+  const musicAudioRef = useRef<HTMLAudioElement | null>(null);
 
-  const handleChange = (_event: any, newValue: number | number[]) => {
-    setVolume(newValue as number);
+  const handleAtcVolumeChange = (_event: any, newValue: number | number[]) => {
+    setAtcVolume(newValue as number);
+  };
+
+  const handleMusicVolumeChange = (_event: any, newValue: number | number[]) => {
+    setMusicVolume(newValue as number);
   };
 
   const toggleColorMode = () => {
-    setMode((prev) => (prev === "dark" ? "light" : "dark"));
+    setMode((prev) => {
+      const newMode = prev === "dark" ? "light" : "dark";
+      localStorage.setItem("theme", newMode);
+      return newMode;
+    });
   };
-
-
 
   const handleMenuOpen = (event: React.MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event.currentTarget);
@@ -41,19 +63,26 @@ export const LofiAtc = () => {
   };
 
   const handlePlayPause = () => {
+    const atcAudio = atcAudioRef.current;
+    const musicAudio = musicAudioRef.current;
     if (isPlaying) {
-      audioRef.current?.pause();
+      atcAudio?.pause();
+      musicAudio?.pause();
     } else {
-      audioRef.current?.play();
+      atcAudio?.play();
+      musicAudio?.play();
     }
     setIsPlaying(!isPlaying);
   };
 
   useEffect(() => {
-    if (audioRef.current) {
-      audioRef.current.volume = volume / 100; // Convert the volume to a scale of 0 to 1
+    const atcAudio = atcAudioRef.current;
+    const musicAudio = musicAudioRef.current;
+    if (atcAudio && musicAudio) {
+      atcAudio.volume = atcVolume / 100;
+      musicAudio.volume = musicVolume / 100;
     }
-  }, [volume]);
+  }, [atcVolume, musicVolume]);
 
   return (
     <ThemeProvider theme={defaultTheme}>
@@ -72,8 +101,6 @@ export const LofiAtc = () => {
         })}
         component="main"
       >
-        
-
         <Stack
           direction="row"
           justifyContent="flex-end"
@@ -83,21 +110,19 @@ export const LofiAtc = () => {
             p: { xs: 2, sm: 4 },
           }}
         >
-  <Link href="/">
-  <div style={{ position: 'relative', top: '7px' }}>
-    <SitemarkIcon />
-  </div>
-</Link>
-          
-          <IconButton onClick={handleMenuOpen}>
-            <Settings />
-          </IconButton>
+          <Link href="/">
+            <div style={{ position: "relative", top: "7px" }}>
+              <SitemarkIcon />
+            </div>
+          </Link>
+
           <Menu
             anchorEl={anchorEl}
             open={Boolean(anchorEl)}
             onClose={handleMenuClose}
           >
             <MenuItem>
+              <Typography variant="subtitle1">ATC Volume</Typography>
               <Box sx={{ width: 200 }}>
                 <Stack
                   spacing={2}
@@ -107,9 +132,30 @@ export const LofiAtc = () => {
                 >
                   <VolumeDown />
                   <Slider
-                    aria-label="Volume"
-                    value={volume} // Use 'volume' for the Slider value
-                    onChange={handleChange}
+                    aria-label="ATC Volume"
+                    value={atcVolume}
+                    onChange={handleAtcVolumeChange}
+                    min={0}
+                    max={100}
+                  />
+                  <VolumeUp />
+                </Stack>
+              </Box>
+            </MenuItem>
+            <MenuItem>
+              <Typography variant="subtitle1">Music Volume</Typography>
+              <Box sx={{ width: 200 }}>
+                <Stack
+                  spacing={2}
+                  direction="row"
+                  sx={{ mb: 1 }}
+                  alignItems="center"
+                >
+                  <VolumeDown />
+                  <Slider
+                    aria-label="Music Volume"
+                    value={musicVolume}
+                    onChange={handleMusicVolumeChange}
                     min={0}
                     max={100}
                   />
@@ -139,12 +185,25 @@ export const LofiAtc = () => {
             transform: "translate(-50%, -50%)",
           }}
         >
-          <Typography variant="h4">KORD</Typography>
-          <Typography variant="h6">O'Hare International Airport</Typography>
+          <IconButton
+            onClick={handleMenuOpen}
+            sx={{
+              position: "absolute",
+              top: 8,
+              right: 8,
+            }}
+          >
+            <Settings />
+          </IconButton>
+
+          <Typography variant="h4">RJTT</Typography>
+          <Typography variant="h6">Tokyo International Airport</Typography>
           <audio
-            ref={audioRef}
-            src="https://s1-bos.liveatc.net/kord7"
+            ref={atcAudioRef}
+            src="https://s1-bos.liveatc.net/rjtt_app_dep"
           />
+          <audio ref={musicAudioRef} src={sound} />
+
           <IconButton onClick={handlePlayPause}>
             {isPlaying ? <Pause /> : <PlayArrow />}
           </IconButton>
